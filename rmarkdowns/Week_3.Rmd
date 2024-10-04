@@ -15,28 +15,29 @@ knitr::opts_chunk$set(echo = TRUE)
 library("vembedr")
 ```
 
-<img src="`r here::here('Images/ALL-SPICE.png')`" width="240" /> <img src="`r here::here('Images/3_CIFAL.png')`" width="200" />
+<img src="`r here::here(&apos;Images/ALL-SPICE.png&apos;)`" width="240"/> <img src="`r here::here(&apos;Images/3_CIFAL.png&apos;)`" width="200"/>
 
 ## GIS for Sustainability and Resilience
 
-Watch the YouTube videos below to see some examples of using GIS for Sustainability and Resilience. 
+Watch the YouTube videos below to see some examples of using GIS for Sustainability and Resilience.
 
 [The Power of Geography to Make a Sustainable Future](https://www.youtube.com/watch?v=C6b3pQ8Tox0)
+
 ```{r}
 embed_url("https://www.youtube.com/watch?v=C6b3pQ8Tox0")
 ```
 
 [Spatial Data: make the most of your opportunities](https://www.youtube.com/watch?v=USZtsvEnP1A)
+
 ```{r}
 embed_url("https://www.youtube.com/watch?v=USZtsvEnP1A")
 ```
 
-
 # Intro to OpenStreetMap
 
-This week we will focus on pulling data from [OpenStreetMap](https://www.openstreetmap.org/about). 
+This week we will focus on pulling data from [OpenStreetMap](https://www.openstreetmap.org/about).
 
-Watch this video for an introduction to OpenStreetMap. 
+Watch this video for an introduction to OpenStreetMap.
 
 [OpenStreetMap: The map that saves lives](https://www.youtube.com/watch?v=d6n29CU2-Sg)
 
@@ -44,20 +45,19 @@ Watch this video for an introduction to OpenStreetMap.
 embed_url("https://www.youtube.com/watch?v=d6n29CU2-Sg")
 ```
 
-You may find that the data you would like to use does not yet exist, or is out of date or inaccurate, in OpenStreetMap. Please consider [contributing data](https://wiki.openstreetmap.org/wiki/Contribute_map_data) yourself or with your community. 
+You may find that the data you would like to use does not yet exist, or is out of date or inaccurate, in OpenStreetMap. Please consider [contributing data](https://wiki.openstreetmap.org/wiki/Contribute_map_data) yourself or with your community.
 
 # Assignment: OpenStreetMap data tutorial
 
 Packages required for this tutorial:
 
-- `tidyverse` (which includes `ggplot2`, more info available [here](https://www.tidyverse.org/))
+-   `tidyverse` (which includes `ggplot2`, more info available [here](https://www.tidyverse.org/))
 
-- `sf` (more info available [here](https://r-spatial.github.io/sf/index.html))
+-   `sf` (more info available [here](https://r-spatial.github.io/sf/index.html))
 
-- `osmdata` (more info available [here](https://docs.ropensci.org/osmdata/))
+-   `osmdata` (more info available [here](https://docs.ropensci.org/osmdata/))
 
-- `leaflet` (more info available [here](https://cran.r-project.org/web/packages/leaflet/leaflet.pdf))
-
+-   `leaflet` (more info available [here](https://cran.r-project.org/web/packages/leaflet/leaflet.pdf))
 
 Load the necessary packages (install them first if you haven't already):
 
@@ -68,8 +68,7 @@ library(osmdata)
 library(leaflet)
 ```
 
-
-The `osmdata` package provides spatial data about a wide range of spatial properties and objects across the world. Features are the high level categories of data in the OSM database. 
+The `osmdata` package provides spatial data about a wide range of spatial properties and objects across the world. Features are the high level categories of data in the OSM database.
 
 The available_features() function can be used to get the list of recognized features in OSM. A list of the available features can be found in the [OSM wiki](https://wiki.openstreetmap.org/wiki/Map_features).
 
@@ -77,12 +76,12 @@ The available_features() function can be used to get the list of recognized feat
 available_features()
 ```
 
-Each feature has subcategories, called "tags". The `available_tags()` function lists out the tags associated with each feature. 
+Each feature has subcategories, called "tags". The `available_tags()` function lists out the tags associated with each feature.
 
-**Challenge 1: Find a different feature from the `available_features()` list and use the `available_tags()` function to list all the associated tags.
+\*\*Challenge 1: Find a different feature from the `available_features()` list and use the `available_tags()` function to list all the associated tags.
 
 ```{r}
-available_tags("healthcare")
+available_tags("tourism") # I tried "abandoned" and it wouldn't work.
 ```
 
 ## Creating a query to download data
@@ -94,13 +93,20 @@ The first step in creating an `osmdata` query is defining the geographical area 
 ```{r}
 bb <- getbb("Maui")
 bb
+
+bb_oahu <- getbb("Oahu")
+bb_oahu
 ```
+
 The `osmdata` package retrieves data from the overpass API, which is a read-only API that serves up custom selected parts of the OSM map data. To retrieve the required features of a place (defined by the bounding box), we have to then create an overpass query. This can be easily done using the `opq()` function of the osmdata package. Here we use the previously defined bounding box to create the overpass query.
 
 Run the code chunk below to update your bounding box.
 
 ```{r}
 bb %>%
+  opq()
+
+bb_oahu %>%
   opq()
 ```
 
@@ -118,6 +124,25 @@ schools <- bb %>%
   add_osm_feature(key = "amenity", value = "school") %>%
   osmdata_sf()
 
+hawaiian <- bb_oahu %>%
+  opq() %>%
+  add_osm_feature(key = "boundary", value = "aboriginal_lands") %>%
+  osmdata_sf()
+
+protected <- bb_oahu %>%
+  opq() %>%
+  add_osm_feature(key = "boundary", value = "protected_area") %>%
+  osmdata_sf()
+
+uni <- bb_oahu %>%
+  opq() %>%
+  add_osm_feature(key = "amenity", value = "university") %>%
+  osmdata_sf()
+
+cc <- bb_oahu %>%
+  opq() %>%
+  add_osm_feature(key = "amenity", value = "college") %>%
+  osmdata_sf()
 
 ```
 
@@ -125,27 +150,36 @@ schools <- bb %>%
 
 The osmdata objects will contain the following components
 
-- A bounding box used in query
-- The call submitted to the overpass API
-- Metadata about the object such as timestamp and version numbers
-- Spatial data - some of which may be empty depending on the type of data retrieved
+-   A bounding box used in query
+-   The call submitted to the overpass API
+-   Metadata about the object such as timestamp and version numbers
+-   Spatial data - some of which may be empty depending on the type of data retrieved
 
 Run the code below to see the `osmdata` object retrieved by querying the schools:
 
 ```{r}
 schools
+
+hawaiian
 ```
+
 If you want to look at any part of this object in more detail, use the `$` symbol to specify. For example, if you want to see the metadata, use the code below:
 
 ```{r}
 # metadata
 schools$meta
+
+hawaiian$meta
 ```
+
 Note how the Spatial data returned by the query are Simple Feature objects as we requested using the `osmdata_sf()` function, and how the polygons also contain more details about the hospitals such as their names, websites, wikipedia pages etc. where available.
 
 ```{r}
 # osm_polygons
 schools$osm_polygons
+
+hawaiian$osm_polygons
+protected$osm_polygons
 ```
 
 ## Basic Mapping with OSM
@@ -154,26 +188,33 @@ schools$osm_polygons
 
 First let's create a map with just the polygons for our schools, as shown below. It works, but without more context, it's not very helpful!
 
-After reading through the whole tutorial, come back and do:
-**Challenge 3: Update the bounding box in `coord_sf` with your target area.** 
+After reading through the whole tutorial, come back and do: **Challenge 3: Update the bounding box in `coord_sf` with your target area.**
 
-Use the latitude and longitude from creating your bounding box in Challenge 2. 
+Use the latitude and longitude from creating your bounding box in Challenge 2.
 
-You will have to plug in the values from the table into the new format for `coord_sf`: 
+You will have to plug in the values from the table into the new format for `coord_sf`:
 
 `xlim = c(xmin, xmax), ylim = c(ymin, ymax)`
+
 ```{r}
 
 ggplot() +
   geom_sf(data = schools$osm_polygons) +
   geom_sf_text(data = schools$osm_polygons, aes(label = name), size = 2, hjust = 0) +
   coord_sf(xlim = c(-156.69726, -155.97909), ylim = c(20.57443, 21.03156), expand = FALSE)
+
+ggplot() +
+  geom_sf(data = hawaiian$osm_polygons) +
+  geom_sf_text(data = hawaiian$osm_polygons, aes(label = name), size = 2, hjust = 0) +
+  coord_sf(xlim = c(-158.28058, -157.64863), ylim = c(21.25482, 21.71201), expand = FALSE) 
 ```
+
 The `osmdata` package can also be used to download other spatial features such as streets and coastlines, and overlay them on top of each other using `ggplot2` to create a map with more context. For this we create multiple queries for each feature like the code chunk below.
 
 After reading through the whole tutorial, come back and do:
 
-**Challenge 4: Run the code below to update with your target area bounding box.** 
+**Challenge 4: Run the code below to update with your target area bounding box.**
+
 ```{r}
 
 # retrieving data of streets on Maui
@@ -190,6 +231,26 @@ small_streets <- bb %>%
 
 # retrieving data of coastline on Maui
 coastline <- bb %>%
+  opq() %>%
+  add_osm_feature(key = "natural", value = "coastline") %>%
+  osmdata_sf()
+
+##########################
+
+# retrieving data of streets on Oahu
+streets_oahu <- bb_oahu %>%
+  opq() %>%
+  add_osm_feature("highway", c("motorway", "primary", "secondary", "tertiary")) %>%
+  osmdata_sf()
+
+# retrieving data of small streets on Oahu
+small_streets_oahu <- bb_oahu %>%
+  opq() %>%
+  add_osm_feature(key = "highway", value = c("residential", "living_street", "unclassified", "service", "footway")) %>%
+  osmdata_sf()
+
+# retrieving data of coastline on Oahu
+coastline_oahu <- bb_oahu %>%
   opq() %>%
   add_osm_feature(key = "natural", value = "coastline") %>%
   osmdata_sf()
@@ -217,8 +278,48 @@ ggplot() +
     x = "Longitude",
     y = "Latitude"
   )
+
+######################
+
+# visualising all retrieved features over each other to form a map of Oahu
+ggplot() +
+  geom_sf(data = streets_oahu$osm_lines, inherit.aes = FALSE, color = "#ffbe7f", size = .4, alpha = .8) +
+  geom_sf(data = small_streets_oahu$osm_lines, inherit.aes = FALSE, color = "#a6a6a6", size = .2, alpha = .8) +
+  geom_sf(data = coastline_oahu$osm_lines, inherit.aes = FALSE, color = "black", size = .8, alpha = .5) +
+  geom_sf(data = hawaiian$osm_polygons, inherit.aes = FALSE, colour = "#0077be", fill = "#0077be", alpha = .8, size = 1) +
+  geom_sf(data = protected$osm_polygons, inherit.aes = FALSE, colour = "pink", fill = "pink", alpha = .5, size = 1) +
+  coord_sf(xlim = c(-158.28058, -157.64863), ylim = c(21.25482, 21.71201), expand = TRUE) +
+  geom_sf_text(data = hawaiian$osm_polygons, aes(label = name), size = 2, hjust = 0) +
+  geom_sf_text(data = protected$osm_polygons, aes(label = name), size = 2, hjust = 0) +
+  theme_bw() +
+  labs(
+    title = "Hawaiian Lands (blue) and protected lands (pink)",
+    x = "Longitude",
+    y = "Latitude"
+  )
+
+# another map, of higher education on Oahu
+ggplot() +
+  geom_sf(data = streets_oahu$osm_lines, inherit.aes = FALSE, color = "#ffbe7f", size = .4, alpha = .8) +
+  geom_sf(data = small_streets_oahu$osm_lines, inherit.aes = FALSE, color = "#a6a6a6", size = .2, alpha = .8) +
+  geom_sf(data = coastline_oahu$osm_lines, inherit.aes = FALSE, color = "black", size = .8, alpha = .5) +
+  geom_sf(data = uni$osm_polygons, inherit.aes = FALSE, colour = "#0077be", fill = "#0077be", alpha = .8, size = 1) +
+  geom_sf(data = cc$osm_polygons, inherit.aes = FALSE, colour = "red", fill = "red", alpha = .5, size = 1) +
+  coord_sf(xlim = c(-158.28058, -157.64863), ylim = c(21.25482, 21.71201), expand = TRUE) +
+  geom_sf_text(data = uni$osm_polygons, aes(label = name), size = 2, hjust = 0) +
+  geom_sf_text(data = cc$osm_polygons, aes(label = name), size = 2, hjust = 0) +
+  theme_bw() +
+  labs(
+    title = "Universities (blue) and Community Colleges (red) on Oʻahu",
+    x = "Longitude",
+    y = "Latitude"
+  )
+
 ```
-This is more helpful. At least now we can see that most schools are either in urban areas (where roads are more dense) or along the coastline. (After you come back and complete Challenge 5, what patterns do you notice in your target area?) 
+
+\
+
+This is more helpful. At least now we can see that most schools are either in urban areas (where roads are more dense) or along the coastline. (After you come back and complete Challenge 5, what patterns do you notice in your target area?)
 
 However, the schools that are clustered together are hard to see and their labels are all overlapping. This is a great reason to use an interactive map that allows us to zoom in and out!
 
@@ -232,14 +333,20 @@ We can use the `leaflet` package to visualize an interactive map of the schools 
 leaflet() %>%
   addTiles() %>%
   addPolygons(
-    data = schools$osm_polygons,
-    label = schools$osm_polygons$name
-  ) 
+    data = uni$osm_polygons,
+    label = uni$osm_polygons$name,
+    color="#0077be"
+  ) %>%
+  addPolygons(
+    data = cc$osm_polygons,
+    label = cc$osm_polygons$name,
+    color="red"
+  )
 ```
 
 # Final Challenge Preparation
 
-Explore the data available in OpenStreetMap for your chosen location. What data would be relevant to topics you want to focus on? Try to create a draft map or two for your target area and target topics. 
+Explore the data available in OpenStreetMap for your chosen location. What data would be relevant to topics you want to focus on? Try to create a draft map or two for your target area and target topics.
 
 # More Resources
 

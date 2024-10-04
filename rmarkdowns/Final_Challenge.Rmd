@@ -100,3 +100,83 @@ Here is a list of resources to help you continue your geospatial data journey:
 * [Spatial Data Science with R and “terra”](https://rspatial.org) Free tutorials. "These resources teach spatial data analysis and modeling with R. R is a widely used programming language and software environment for data science. R also provides unparalleled opportunities for analyzing spatial data and for spatial modeling."
 * [Spatial Data Science](https://r-spatial.org/book/) Free ebook. "This book introduces and explains the concepts underlying spatial data: points, lines, polygons, rasters, coverages, geometry attributes, data cubes, reference systems, as well as higher-level concepts including how attributes relate to geometries and how this affects analysis. ... The book aims at data scientists who want to get a grip on using spatial data in their analysis. To exemplify how to do things, it uses R."
 * [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html) Free ebook. Check out the rest of this book (we only covered a few chapters) for lots of great ideas for using US Census data. "Census data is widely used in the United States across numerous research and applied fields, including education, business, journalism, and many others. Until recently, the process of working with US Census data has required the use of a wide array of web interfaces and software platforms to prepare, map, and present data products. The goal of this book is to illustrate the utility of the R programming language for handling these tasks, allowing Census data users to manage their projects in a single computing environment."
+
+# DRAFT
+
+## Load libraries
+```{r}
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
+
+## Build dataframes
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+states <- (ne_states(country = "United States of America"))
+alabama <- states %>%
+  filter(name == "Alabama")
+
+# lakes
+lakes50 <- ne_download(
+  scale = 50, 
+  type = "lakes", 
+  category = "physical")
+
+# rivers
+rivers50 <- ne_download(
+  scale = 50,
+  type = "rivers_lake_centerlines",
+  category = "physical",
+  returnclass = "sf"
+)
+
+# railroads
+railroads10 <- ne_download(
+  scale = 10, # only available in scale10, so let's see what that's about
+  type = "railroads",
+  category = "cultural",
+  returnclass = "sf"
+)
+
+# add some points while we're here
+points <- data.frame(
+  longitude = c(-87.5391, -90.4024, -81.5580),
+  latitude = c(30.4105, 32.8468, 30.7300),  
+  label = c("Lillian, AL", "Yazoo City, MS", "St. Mary's, GA")
+  )
+
+# add another layer to highlight the Mississippi river, too
+miss_river <- rivers50 %>%
+  filter(name == "Mississippi")
+```
+
+## Draw the graph!
+```{r}
+ggplot() +
+    geom_sf(data = world, fill = "white") +
+    geom_sf(data = states, fill = "antiquewhite", size = 0.25) +
+    geom_sf(data = alabama, fill = "#A81C1C", color = "#A81C1C")+
+    geom_sf(data = lakes50, fill = "cyan3", color = "darkcyan") +
+    geom_sf(data = rivers50, color = "cyan3", size = 0.15) +
+    geom_sf(data = railroads10, color = "goldenrod", size = 0.15, linetype = "dashed") + 
+    geom_sf(data = miss_river, color = "#4682B4", size = 20) +
+    geom_point(data = points, aes(x = longitude, y = latitude), color = "black", size = 2, shape = 18) +
+    geom_label(data = points, aes(x = longitude, y = latitude, label = label), size = 2, vjust = -.3) +
+    geom_sf_text(data = states, aes(label = name), size = 3, fontface = "bold", nudge_y = states$nudge_y) +
+    coord_sf(xlim = c(-92, -80), ylim = c(29, 36), expand = FALSE) +
+    ylab("Latitude") +
+    xlab("Longitude") +
+    ggtitle("Roll Tide!", subtitle = "Alabama (Southeast USA)")+
+    theme_bw() 
+```
+
+#### Considerations:
+I want to add a legend, but the only way I knew how got too messy. I wonder if there is a GIS-approved way (that isn't just ggplot brute force).
+
+I'm also curious about more detailed data in general. I know there are more rivers and streams and railroads than presented here. What else do I want to add? Farm land? Mountains?
+
+Lastly, I wanted to add a layer that draws the Mississippi river really wide, but wasn't sure how to accomplish that. I was able to change the color, but note that my code has size = 20 and it is not making a difference. I used st_geometry_type(miss_river) to confirm that the data geometry is line data.
+

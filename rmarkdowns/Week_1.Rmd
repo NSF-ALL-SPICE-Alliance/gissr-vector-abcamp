@@ -173,10 +173,12 @@ Now let's add a title and subtitle to our map.
 
 **Challenge 1: Change the subtitle in the code to your name instead of mine. Feel free to change the title and subtitle to another language!**
 
+# Amber's Challange #1 Answer
 ```{r}
 ggplot(data = world) +
-    geom_sf() +
-    ggtitle("Countries of the World", subtitle = "Created by Catherine Brockway")
+  geom_sf() +
+  ggtitle("Countries of the World", subtitle = "Created by Amber Camp") +
+  xlab("Longitude") + ylab("Latitude")
 
 ```
 
@@ -216,6 +218,31 @@ ggplot() +
     ggtitle("Countries of the World", subtitle = "without Antarctica")
 ```
 
+# Amber's Challenge #2 Answer
+```{r}
+
+# World map without Australia
+
+world %>% 
+  filter(sovereignt == "Australia") %>% 
+  pull(iso_a3)
+
+# Looks like iso_3 for Australia is AUS, but there are other values for surrounding islands etc.
+# Let's just deal with Australia proper for now
+
+world_without_australia <- world %>% 
+  filter(iso_a3 != "AUS")
+
+ggplot() + 
+  geom_sf(data = world_without_australia)
+
+ggplot() + 
+  geom_sf(data = world_without_australia) +
+    ggtitle("Countries of the World", subtitle = "without Australia")
+
+```
+
+
 ## Map aesthetics
 
 Now let's work on making our map pretty with some colors. Inside our `geom_sf()` parentheses, we can add our own colors to our map. The argument `fill` add color to our polygons, and `color` is the color of our lines. `size` refers to the size of our lines. 
@@ -229,6 +256,16 @@ ggplot() +
           fill = "#669438", color = "#32481B", size = 0.25) +
   ggtitle("Countries of the World", subtitle = "without Antarctica")
 ```
+
+# Amber's Challenge #3 Answer
+```{r}
+ggplot() + 
+  geom_sf(data = world_without_australia, 
+          fill = "slategrey", color = "tomato", size = 0.25) +
+  ggtitle("Countries of the World", subtitle = "without Australia")
+# these colors were used in my dissertation, and they look much nicer there, i promise.
+```
+
 
 Now let's work on an important aspect of cartographic design: decluttering our map. Since we are just making a basic world map, let's get rid of the grid lines showing latitude and longitude and the box around our map. The easiest way to do this is to use a theme that is built in to the `ggplot2` package: `theme_void`.
 ```{r}
@@ -248,13 +285,16 @@ Notice that the `mapcolor7` column only provides numbers, so we need to add a co
 We are using Brewer color palettes (created by Cynthia A. Brewer) in this class, which are designed specifically for map-making.
 
 To learn more about choosing color palettes in R, specifically using the `ggplot2` package, read [Chapter 11](https://ggplot2-book.org/scales-colour) in "ggplot2: Elegant Graphics for Data Analysis". 
+
+# Amber's Challenge #4 Answer
 ```{r}
 ggplot() + 
-  geom_sf(data = world_without_antarctica, 
+  geom_sf(data = world_without_australia, 
           aes(fill = as.factor(mapcolor7)),
-          color = "#401D16", size = 0.25) +
-  scale_fill_brewer(palette = "Set1") +
+          color = "peachpuff4", size = 0.25) +
+  scale_fill_brewer(palette = "BrBG") +
   guides(fill = "none") +
+  ggtitle("Countries of the World", subtitle = "without Australia")+
   theme_void()
 ```
 
@@ -295,6 +335,21 @@ ggplot(data = world) +
     coord_sf(crs = "+proj=ortho +lat_0=33 +lon_0=-101 ") +
   ggtitle("Lubbock, TX as the Center of the World", subtitle = "Orthographic Azimuthal")+
   theme_void()
+
+```
+
+# Amber's Challenge #5 Answer
+```{r}
+
+home <- data.frame(longitude = c(-157.819360), latitude = c(21.293070)) # brute force a df here for fun
+
+ggplot(data = world) +
+  geom_sf(fill = "peachpuff", color = "peachpuff4", size = 0.25) +
+    coord_sf(crs = "+proj=ortho +lat_0=21 +lon_0=-158 ") +
+  ggtitle("Honolulu, HI as the Center of the World (Orthographic Azimuthal)", subtitle = "Because it truly is the center of my world")+
+  theme_void() +
+  geom_point(data = home, aes(x = longitude, y = latitude), size = 18, shape = 1, color = "tomato")
+
 
 ```
 

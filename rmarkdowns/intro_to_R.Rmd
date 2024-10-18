@@ -94,19 +94,25 @@ Let's practice creating some variables:
 
 1. my_name
 ```{r}
-my_name <- "Victoria DelaCruz" # character strings are stored within quotations
+my_name <- "Amber Camp" # character strings are stored within quotations
 my_name # run the name of your variable to see the output
 ```
 
 2. my_age
 ```{r}
-my_age = 20 # numeric values do not need any quotations
+my_age = 36 # numeric values do not need any quotations
 my_age # run the name of your variable to see the output
 my_age + 5 # how old will you be in 5 years?
 ```
 
 #### <span style="color: red;">Challenge 1</span>
 Create a my_name variable with your name assigned to the variable instead of "Victoria DelaCruz". Then, create a my_age variable with your age. 
+
+```{r}
+my_name <- "Amber Camp"
+my_age <- 36
+```
+
 
 #### Different Types of Data
 

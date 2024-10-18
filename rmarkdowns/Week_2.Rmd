@@ -85,6 +85,18 @@ ggplot(data = world) +
 
 ```
 
+# Amber's Challenge #1 Answer
+I am choosing Alabama, since that is where my dad currently lives. I'm using Google Earth to create a bounding box. But, I want the bounding box to include Mississippi, where my grandma lives, and Georgia, where I used to live.
+
+```{r}
+ggplot(data = world) +
+    geom_sf() +
+    coord_sf(xlim = c(-92, -80), ylim = c(29, 36), expand = FALSE) +
+    ggtitle("Alabama (Southeast USA)")+
+    theme_minimal() # I'm adding lat/long lines for now, to orient myself as I build my map
+```
+
+
 This gives us a very simple map which doesn't provide much information. We will need to add more data layers to make the map more meaningful.
 
 Let's create a layer that includes state/province level data. 
@@ -94,6 +106,19 @@ Let's create a layer that includes state/province level data.
 ```{r}
 states <- (ne_states(country = "United States of America"))
 ```
+
+# Amber's Challenge 2 Answer
+```{r}
+# will need rnaturalearthhires. try using:
+# devtools::install_github("ropensci/rnaturalearthhires")
+
+# solution from Cat
+# remotes::install_github("ropensci/rnaturalearthhires")
+# install.packages("rnaturalearthhires", repos = "https://ropensci.r-universe.dev", type = "source")
+
+states <- (ne_states(country = "United States of America"))
+```
+
 
 Now we can add this layer to our existing map with a second `geom_sf`. 
 
@@ -108,6 +133,18 @@ ggplot() +
     theme_void()
 
 ```
+
+# Amber's Challenge 3 Answer
+
+```{r}
+ggplot(data = world) +
+    geom_sf(data = world) +
+    geom_sf(data = states) +
+    coord_sf(xlim = c(-92, -80), ylim = c(29, 36), expand = FALSE) +
+    ggtitle("Alabama (Southeast USA)")+
+    theme_minimal() # I'm adding lat/long lines for now, to orient myself as I build my map
+```
+
 
 To see what other cultural/political features are available, use the function `df_layers_cultural`. 
 
@@ -160,15 +197,44 @@ Now let's add the lakes and rivers to our map.
 
 **Challenge 4: Update the `coord_sf` with your bounding box and your `ggtitle` with your own title.** The `states` layer should also now be updated with your new `states` dataframe you created in Challenge 2. 
 
+# Amber's Challenge 4 Answer
+
+I wanted to add railroads, too. Just editing your existing code chunk.
+
 ```{r}
+# lakes
+lakes50 <- ne_download(
+  scale = 50, 
+  type = "lakes", 
+  category = "physical")
+
+# rivers
+rivers50 <- ne_download(
+  scale = 50,
+  type = "rivers_lake_centerlines",
+  category = "physical",
+  returnclass = "sf"
+)
+
+# railroads
+railroads10 <- ne_download(
+  scale = 10, # only available in scale10, so let's see what that's about
+  type = "railroads",
+  category = "cultural",
+  returnclass = "sf"
+)
+# seems like railroads has more data than railroads_north_america. wonder what the difference is
+
+
 ggplot() +
     geom_sf(data = world) +
     geom_sf(data = states) +
     geom_sf(data = lakes50) +
-    geom_sf(data = rivers50) +
-    coord_sf(xlim = c(-130, -110), ylim = c(40, 50), expand = FALSE) +
-    ggtitle("Pacific Northwest Region of the United States")+
-    theme_void()
+    geom_sf(data = rivers50) + 
+    geom_sf(data = railroads10) + # whoa, crazy
+    coord_sf(xlim = c(-92, -80), ylim = c(29, 36), expand = FALSE) +
+    ggtitle("Alabama (Southeast USA)")+
+    theme_minimal()
 
 ```
 
@@ -176,49 +242,85 @@ Now let's choose colors for all of our layers, and add some labels from the `sta
 
 **Challenge 5: Update the `coord_sf` with your bounding box and your `ggtitle` with your own title. Change at least one of the colors in the `ggplot` code**. You can use color names like I have here, or you can specify a color using the hex code.
 
+# Amber's Challenge 5 (editing existing code)
 ```{r}
 ggplot() +
-    geom_sf(data = world, fill = "lightgray") +
-    geom_sf(data = states, fill = "antiquewhite1", size = 0.25) +
-    geom_sf(data = lakes50, fill = "darkblue", color = "black") +
-    geom_sf(data = rivers50, color = "lightblue", size = 0.15) +
-    geom_sf_text(data = states, aes(label = name), size = 5, fontface = "bold", nudge_y = states$nudge_y) +
-    coord_sf(xlim = c(-130, -110), ylim = c(40, 50), expand = FALSE) +
-    ggtitle("Pacific Northwest Region of the United States")+
-    theme_void()
-
+    geom_sf(data = world, fill = "white") +
+    geom_sf(data = states, fill = "antiquewhite", size = 0.25) +
+    geom_sf(data = lakes50, fill = "cyan3", color = "darkcyan") +
+    geom_sf(data = rivers50, color = "cyan3", size = 0.15) +
+    geom_sf(data = railroads10, color = "goldenrod", size = 0.15, linetype = "dashed") + 
+    geom_sf_text(data = states, aes(label = name), size = 3, fontface = "bold", nudge_y = states$nudge_y) +
+    coord_sf(xlim = c(-92, -80), ylim = c(29, 36), expand = FALSE) +
+    ylab("Latitude") +
+    xlab("Longitude") +
+    ggtitle("Alabama (Southeast USA)")+
+    theme_minimal()
 ```
 
 For our final addition, let's highlight the specific area we will be focusing on. To do this, we will create a new layer that only includes the state (or province) where we will focus on for our project. 
 
 **Challenge 6: Update the name of the state/province that you are focused on for your project.** Remember to change the name of the data object (to the left of the `<-`) to your target area. 
-
+# Amber's Challenge 6 Answer 
 ```{r}
 washington <- states %>%
   filter(name == "Washington")
+
+# Amber added
+alabama <- states %>%
+  filter(name == "Alabama")
 ```
 
 Now let's add that as a layer (the last `geom_sf` in our code) on our map, use the same fill color as the other states, and color the border red. We want this layer to be on top of the other layers on our map, so it should come after (below) the other `geom_sf` lines of our code. The order of our layers is very important!
 
 **Challenge 7: Update the code below with all of your changes.** You should be changing at least one color, the name of the data object with your target area (in the fifth `geom_sf`), the bounding box, and the title and subtitle. 
 
-```{r}
-ggplot() +
-    geom_sf(data = world, fill = "lightgray") +
-    geom_sf(data = states, fill = "antiquewhite1", size = 0.25) +
-    geom_sf(data = lakes50, fill = "darkblue", color = "black") +
-    geom_sf(data = rivers50, color = "lightblue", size = 0.15) +
-    geom_sf(data = washington, fill = "antiquewhite2", color = "red")+
-    geom_text(data = states, aes(x = longitude, y = latitude, label = name), size = 5, fontface = "bold", nudge_y = states$nudge_y) +
-    coord_sf(xlim = c(-130, -110), ylim = c(40, 50), expand = FALSE) +
-    ggtitle("Washington State", subtitle = "in the Pacific Northwest Region of the United States")+
-    theme_void()
+#Amber's Challenge 7 Answers (edited existing code)
+```{r, warning=FALSE}
+# add some points while we're here
+points <- data.frame(
+  longitude = c(-87.5391, -90.4024, -81.5580),
+  latitude = c(30.4105, 32.8468, 30.7300),  
+  label = c("Lillian, AL", "Yazoo City, MS", "St. Mary's, GA")
+  )
 
+# add another layer to highlight the Mississippi river, too
+miss_river <- rivers50 %>%
+  filter(name == "Mississippi") 
+
+ggplot() +
+    geom_sf(data = world, fill = "white") +
+    geom_sf(data = states, fill = "antiquewhite", size = 0.25) +
+    geom_sf(data = alabama, fill = "#A81C1C", color = "#A81C1C")+
+    geom_sf(data = lakes50, fill = "cyan3", color = "darkcyan") +
+    geom_sf(data = rivers50, color = "cyan3", size = 0.15) +
+    geom_sf(data = railroads10, color = "goldenrod", size = 0.15, linetype = "dashed") + 
+    geom_sf(data = miss_river, color = "#4682B4", size = 20) +
+    geom_point(data = points, aes(x = longitude, y = latitude), color = "black", size = 2, shape = 18) +
+    geom_label(data = points, aes(x = longitude, y = latitude, label = label), size = 2, vjust = -.3) +
+    geom_sf_text(data = states, aes(label = name), size = 3, fontface = "bold", nudge_y = states$nudge_y) +
+    coord_sf(xlim = c(-92, -80), ylim = c(29, 36), expand = FALSE) +
+    ylab("Latitude") +
+    xlab("Longitude") +
+    ggtitle("Roll Tide!", subtitle = "Alabama (Southeast USA)")+
+    theme_bw() 
+
+# I included some questions below, as I consider my Final Challenge.
 ```
 
 # Final Challenge Preparation
 
 Think about what kinds of data you want to include in your locator map for your final project. Check out the Natural Earth [features](https://www.naturalearthdata.com/features/) to see what is available, and try to retrieve the data and add different layers to your map. You can also remove the lakes and rivers layers if you want. You can go ahead and add your locator map draft to your Final_Challenge.rmd.
+
+# QUESTIONS from Amber
+```{r}
+# I want to add a legend, but the only way I knew how got too messy. I wonder if there is a GIS-approved way (that isn't just ggplot brute force).
+
+# I'm also curious about more detailed data in general. I know there are more rivers and streams and railroads than presented here. What else do I want to add? Farm land? Mountains? National Forests or Parks in the area?
+  
+# Lastly, I wanted to add a layer that draws the Mississippi river really wide, but wasn't sure how to accomplish that. I was able to change the color, but note that my code has size = 20 and it is not making a difference. I used st_geometry_type(miss_river) to confirm that the data geometry is line data.
+```
+
 
 
 # More resources
